@@ -105,7 +105,7 @@ jobs:
           path: .
       - name: load images into local daemon 
         run: docker load -i ./my-docker-image
-      - name: login to aws 
+      - name: login to amazon web service
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{env.ROle}}
