@@ -18,7 +18,7 @@ env:
   ECR_REG: ${{vars.ECR_REG}}
   ECR_REPO: ${{vars.ECR_REPO}}
   IMAGE_TAG: ${{github.sha}}
-  ROLE: ${{vars.ROLE}}
+  ROLE: ${{secrets.ROLE}}
 jobs:
   test_lint_scan:
     runs-on: ubuntu-latest
@@ -108,7 +108,7 @@ jobs:
       - name: login to amazon web service
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{env.ROle}}
+          role-to-assume: ${{env.ROLE}}
           aws-region: ${{env.region}}
       - name: login to ecr 
         id: login-ecr
