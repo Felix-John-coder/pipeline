@@ -18,7 +18,7 @@ env:
   ECR_REG: ${{vars.ECR_REG}}
   ECR_REPO: ${{vars.ECR_REPO}}
   IMAGE_TAG: ${{github.sha}}
-  ROLE: ${{secrets.ROLE}}
+  ROLE: ${{vars.ROLE}}
 jobs:
   test_lint_scan:
     runs-on: ubuntu-latest
