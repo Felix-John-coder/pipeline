@@ -127,4 +127,4 @@ jobs:
           aws sns publish \
           --topic-arn arn:aws:sns:eu-north-1:862479276433:CICD_trigger \
           --subject "pipline triggered" \
-          --message "Hey felix, your pipeline has been triggered on main branch"
+          --message "Hey felix, your pipeline has been triggered on main branch and successfully pushed image to ECR"
