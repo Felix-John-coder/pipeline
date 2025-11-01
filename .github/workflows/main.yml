@@ -32,6 +32,10 @@ jobs:
         with: 
           python-version: '3.11'
           cache: 'pip'
+      - name: install dependency 
+        run: |
+          pip install --upgrade pip
+          pip install -r src/requirements.txt
       - name: run linting 
         run: flake8 . --max-line-length=120 --count --statistics
       - name: run test 
