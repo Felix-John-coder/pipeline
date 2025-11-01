@@ -106,7 +106,7 @@ jobs:
       - name: load images into local daemon 
         run: docker load -i ./my-docker-image
       - name: login to aws 
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{env.ROle}}
           aws-region: ${{env.region}}
