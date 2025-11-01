@@ -63,7 +63,7 @@ jobs:
         uses: docker/metadata-action@v5
         id: meta 
         with:
-          images: ${{env.ECR_REG}}/${{env.ECR_REPO}}
+          images: ${{env.ECR_REG}}${{env.ECR_REPO}}
           tags: |
             type=sha
             type=raw,value=latest
