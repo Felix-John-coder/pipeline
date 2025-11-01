@@ -117,9 +117,9 @@ jobs:
         run: docker images
       - name: tagging and pushing
         run: |
-          docker tag ${{env.ECR_REG}}${{env.ECR_REPO}}:latest:latest ${{env.ECR_REG}}${{env.ECR_REPO}}:${{env.IMAGE_TAG}}
-          docker push ${{env.ECR_REG}}${{env.ECR_REPO}}:latest
-          docker push ${{env.ECR_REG}}${{env.ECR_REPO}}:${{env.IMAGE_TAG}}
+          docker tag ${{env.ECR_REG}}${{env.ECR_REPO}}:latest ${{env.ECR_REG}}${{env.ECR_REPO}}:${{env.IMAGE_TAG}}
+          docker push  ${{env.ECR_REG}}${{env.ECR_REPO}}:latest
+          docker push  ${{env.ECR_REG}}${{env.ECR_REPO}}:${{env.IMAGE_TAG}}
 
 
       - name: send sns email notification 
