@@ -39,7 +39,7 @@ jobs:
           pip install --upgrade pip
           pip install -r src/requirements.txt
       - name: run linting of code 
-        run: flake8 -r . --count --max-line-length=120 --statistics
+        run: flake8 . --count --max-line-length=120 --statistics
       - name: run test 
         run: pytest src/* -v maxfail=1 --disable-warnings --cov=. --cov-report=term-missing
       - name: check code vulnerabilities
