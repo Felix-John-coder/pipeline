@@ -103,6 +103,9 @@ jobs:
     steps:
       - name: download artifact 
         uses: actions/download-artifact@v4
+        with:
+          name: images
+          path: .
       - name: check if images has been downloaded
         run: docker images
       - name: load artifact to local daemon 
