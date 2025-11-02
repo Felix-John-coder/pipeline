@@ -43,7 +43,7 @@ jobs:
       - name: run linting of code 
         run: flake8 . --count --max-line-length=120 --statistics
       - name: check code vulnerabilities
-        run: bandit -r . -l -s B101,B102,B104,B105,
+        run: bandit -r . -l -s B101,B103,B104,B105
       - name: check for dependency vulnerabilities
         run: check safety --full-report || true 
     #===============
