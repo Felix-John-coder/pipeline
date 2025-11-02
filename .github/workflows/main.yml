@@ -38,10 +38,10 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r src/requirements.txt
+      - name: run test 
+        run: pytest src/* -v --maxfail=1 --disable-warnings --cov=. --cov-report=term-missing
       - name: run linting of code 
         run: flake8 . --count --max-line-length=120 --statistics
-      - name: run test 
-        run: pytest src/* -v maxfail=1 --disable-warnings --cov=. --cov-report=term-missing
       - name: check code vulnerabilities
         run: bandit -r . -lll -s B101,B102,B103,B104,B105,
       - name: check for dependency vulnerabilities
