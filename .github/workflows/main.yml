@@ -91,7 +91,30 @@ jobs:
           name: images
           path: images.tar
           retention-days: 7
-      
+
+ #==============
+ #scan_images
+ #=============
+  scan_images: 
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: get images 
+        uses: actions/download-artifact@v4
+        with:
+          name: images
+          path: .
+      - name: load image to local daemon
+        run: docker load -i images.tar
+      - name: scan images for vulnerabilities
+        uses: aquasecurity/trivy-action@v0.30.0
+        with:
+          image-ref: ${{env.REG}}${{env.REPO}}:latest
+          format: table
+          ingnore-unfixed: true #ignore issues that cant be patch with os, library
+          exit-code: 0 # if caught an error only raise a warning and not fail pipeline
+          severity: HIGH
+          vuln-type: 'os,library'
 #=============
 #push
 #==================
