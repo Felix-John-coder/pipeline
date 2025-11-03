@@ -61,7 +61,13 @@ jobs:
           fetch-depth: 1
       - name: seutup docker build environement
         uses: docker/setup-buildx-action@v3
-        
+      - name: use cache for faster build
+        uses: actions/cache@v4
+        with:
+          path: ./buildx
+          key: ${{runner.os}}-buildx-${{github.sha}}
+          restore-keys: |
+            ${{runner.os}}-buildx-
       - name: generate metadata tag and label
         id: meta 
         uses: docker/metadata-action@v5
@@ -110,7 +116,7 @@ jobs:
       - name: load image to local daemon
         run: docker load -i images.tar
       - name: scan images for vulnerabilities
-        uses: aquasecurity/trivy-action@v0.29.0
+        uses: aquasecurity/trivy-action@0.29.0
         with:
           image-ref: ${{env.REG}}${{env.REPO}}:latest
           format: table
