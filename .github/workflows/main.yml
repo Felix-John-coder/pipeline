@@ -107,11 +107,11 @@ jobs:
       - name: load image to local daemon
         run: docker load -i images.tar
       - name: scan images for vulnerabilities
-        uses: aquasecurity/trivy-action@v0.30.0
+        uses: aquasecurity/trivy-action@v0.29.0
         with:
           image-ref: ${{env.REG}}${{env.REPO}}:latest
           format: table
-          ingnore-unfixed: true #ignore issues that cant be patch with os, library
+          ignore-unfixed: true #ignore issues that cant be patch with os, library
           exit-code: 0 # if caught an error only raise a warning and not fail pipeline
           severity: HIGH
           vuln-type: 'os,library'

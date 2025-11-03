@@ -106,7 +106,7 @@ jobs:
     - name: load active to docker daemon 
       run: docker load -i images.tar
     - name: scan image for vulnerabilities
-      uses: aquasecurity/trivy-action@v234
+      uses: aquasecurity/trivy-action@
       with:
         image-ref: ${{env.REG}}${{env.REPO}}:latest
         format: table
