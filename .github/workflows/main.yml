@@ -71,7 +71,7 @@ jobs:
         with: 
           images: ${{env.ECR_REG}}${{env.ECR_REPO}}:latest 
           tags: | 
-            type=gha 
+            type=sha 
             type=raw,value=latest 
       - name: build image 
         uses: docker/build-push-action@v2
