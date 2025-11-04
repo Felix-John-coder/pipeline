@@ -89,7 +89,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with: 
           name: images 
-          path: ./images 
+          path: images.tar 
           retention-days: 7 
   
   #================
