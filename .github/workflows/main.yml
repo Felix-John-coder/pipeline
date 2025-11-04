@@ -1,0 +1,156 @@
+name: test_build_scan_push
+on:
+  push:
+    branches:
+      - main
+  pull_request: 
+    branches: 
+      - main
+  workflow_dispatch:
+permissions:
+  id-token: write
+  contents: write
+concurrency:
+  group: ${{github.ref}}-ci 
+  cancel-in-progress: true
+env:
+  region: ${{vars.AWS_REGION}}
+  ECR_REPO: ${{vars.ECR_REPO}}
+  ECR_REG: ${{vars.ECR_REG}}
+  ROLE: ${{secrets.ROLE}}
+  IMAGE_TAG: ${{github.sha}}
+  EMAIL: ${{secrets.EMAIL}}
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: chechkout code 
+        uses: actions/checkout@v4
+        with: 
+          fetch-depth: 0
+      - name: setup python environment 
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: install dependency
+        run: |
+          pip install --upgrade pip 
+          pip install -r src/requirements.txt
+      - name: test application 
+        run: pytest src/* -v --disable-warnings --maxfail=1 --cov=. --cov-report=term-missing
+      - name: lint code 
+        run: flake8 . --max-line-length=120 --statistics
+      - name: scan code 
+        run: bandit -r . -ll -s B101,B102,B103,B104,B105
+      - name: scan dependency 
+        run: safety check --full-report || true 
+  #=============
+  #build 
+  #===========
+  build: 
+    runs-on: ubuntu-latest
+    timeout-minutes: 10 
+    needs: test
+    steps:
+      - name: chechkout repo 
+        uses: actions/checkout@v4 
+        with: 
+          fetch-depth: 0 
+      - name: setup docker 
+        uses: docker/setup-buildx-action@v5 
+      - name: setup cache 
+        uses: actions/cache@v2 
+        with: 
+          path: ./buildx
+          key: ${{runner.os}}-buildx-${{github.sha}}
+          restore-keys: ${{runner.os}}-buildx 
+      - name: generate meta data 
+        uses: docker/metadata-action@v5
+        id: meta
+        with: 
+          images: ${{env.ECR_REG}}${{env.ECR_REPO}}:latest 
+          tags: | 
+            type=gha 
+            type=raw,value=latest 
+      - name: build image 
+        uses: docker/build-push-action@v2
+        with: 
+          context: .
+          push: false
+          load: true 
+          tags: ${{steps.meta.outputs.tags}}
+          labels: ${{steps.meta.outputs.labels}}
+          cache-from: type=gha 
+          cache-to: type=gha,mode=max
+      - name: save images and ready for upload 
+        run: docker save ${{env.ECR_REG}}${{env.ECR_REPO}}:latest -o images.tar
+      - name: upload artifact 
+        uses: actions/upload-artifact@v4
+        with: 
+          name: images 
+          path: ./images 
+          retention-days: 7 
+  
+  #================
+  #scan images
+  #============
+  scan: 
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: build
+    steps:
+      - name: download artifact 
+        uses: actions/download-artifact@v4
+        with:
+          name: images
+          path: .
+      - name: check is image is available in daemon 
+        run: docker image
+      - name: load artifact 
+        run: docker load -i images.tar
+      - name: scan images with trivy
+        uses: aquasecurity/trivy-action@0.33.0
+        with: 
+          image-ref: ${{env.ECR_REG}}${{env.ECR_REPO}}:latest
+          format: table
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+          exit-code: 0
+          vuln-type: 'os,library'
+  #==============
+  #push to ecr
+  #==============
+  push:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    timeout-minutes: 5
+    steps:
+      - name: download artifact 
+        uses: actions/download-artifact@v4
+        with: 
+          name: images
+          path: .
+      - name: check if image is available in runner 
+        run: docker images
+      - name: load image to local daemon 
+        run: docker load -i images.tar 
+      - name: login to amazon 
+        uses: aws-actions/configure-aws-credentials@v5 
+        with: 
+          role-to-assume: ${{env.ROLE}}
+          aws-region: eu-noth-1
+      - name: login to ecr 
+        id: login-ecr 
+        uses: aws-actions/amazon-ecr-login@v2 
+      - name: push images 
+        run: | 
+          docker tag ${{env.ECR_REG}}${{env.ECR_REPO}}:latest ${{env.ECR_REG}}${{env.ECR_REPO}}:${{env.IMAGE_TAG}}
+          docker push ${{env.ECR_REG}}${{env.ECR_REPO}}:latest
+          docker push ${{env.ECR_REG}}${{env.ECR_REPO}}:${{env.IMAGE_TAG}}
+      - name: send a email notification to team 
+        run: |
+          aws sns publish \
+          --topic-arn ${{env.EMAIL}} \
+          --subject "workflow successful"
+          --message "The workflow ran successfully and created an image with ID: ${{env.ECR_REG}}${{env.ECR_REPO}}:latest"
