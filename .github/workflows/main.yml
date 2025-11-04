@@ -153,5 +153,5 @@ jobs:
         run: |
           aws sns publish \
           --topic-arn ${{env.EMAIL}} \
-          --subject "workflow successful"
-          --message "The workflow ran successfully and created an image with ID: ${{env.ECR_REG}}${{env.ECR_REPO}}:latest"
+          --subject "workflow successful" \
+          --message "The workflow ran successfully and created an image with ID: ${{env.ECR_REG}}${{env.ECR_REPO}}:latest" \
