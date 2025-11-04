@@ -17,7 +17,7 @@ env:
   region: ${{vars.AWS_REGION}}
   ECR_REPO: ${{vars.ECR_REPO}}
   ECR_REG: ${{vars.ECR_REG}}
-  ROLE: ${{secrets.ROLE}}
+  AWS_ROLE: ${{secrets.ROLE}}
   IMAGE_TAG: ${{github.sha}}
   EMAIL: ${{secrets.EMAIL}}
 jobs:
@@ -139,8 +139,8 @@ jobs:
       - name: login to amazon 
         uses: aws-actions/configure-aws-credentials@v5 
         with: 
-          role-to-assume: ${{env.ROLE}}
-          aws-region: eu-noth-1
+          role-to-assume: ${{env.AWS_ROLE}}
+          aws-region: eu-north-1
       - name: login to ecr 
         id: login-ecr 
         uses: aws-actions/amazon-ecr-login@v2 
