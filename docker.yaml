@@ -93,7 +93,7 @@ jobs:
       - name: check if images has been build 
         run: docker images
       - name: save images
-        run: docker save ${{env.REG}}${{env.REPO}}:latest -o images.tar
+        run: docker save ${{env.REG}}${{env.REPO}}: -o images.tar
       - name: upload artifact to github blob storage
         uses: actions/upload-artifact@v4
         with:

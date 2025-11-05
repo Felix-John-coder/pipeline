@@ -53,7 +53,7 @@ jobs:
     timeout-minutes: 10 
     needs: test
     outputs:
-      image-tag: ${{steps.meta.outputs.version}}
+          image-tag: ${{ steps.save.outputs.image_ref }}
     steps:
       - name: chechkout repo 
         uses: actions/checkout@v4 
@@ -73,7 +73,7 @@ jobs:
         with: 
           images: ${{env.ECR_REG}}${{env.ECR_REPO}} 
           tags: | 
-            type=sha 
+            type=sha,prefix=sha-
             type=raw,value=latest 
       - name: build image 
         uses: docker/build-push-action@v2
@@ -85,8 +85,17 @@ jobs:
           labels: ${{steps.meta.outputs.labels}}
           cache-from: type=gha 
           cache-to: type=gha,mode=max
-      - name: save images and ready for upload 
-        run: docker save ${{steps.meta.outputs.tags}} -o images.tar
+      - name: check image
+        run: docker images
+      - name: save image
+        id: save
+        run: |
+          IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
+          echo "Saving image: $IMAGE_TAG"
+          docker save "$IMAGE_TAG" -o images.tar
+          echo "image_ref=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+              
       - name: upload artifact 
         uses: actions/upload-artifact@v4
         with: 
