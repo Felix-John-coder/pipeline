@@ -121,7 +121,7 @@ jobs:
         run: docker load -i images.tar
       - name: run test on image 
         run: | 
-          docker run -d --name test-app -p 8080:8080 ${{env.ECR_REG}}${{env.ECR_REPO}}:${{needs.build.outputs.image-tag}}
+          docker run -d --name test-app -p 8080:8080 ${{needs.build.outputs.image-tag}}
           retries=5
           count_retry=0
           interval=5
@@ -167,7 +167,7 @@ jobs:
       - name: scan images with trivy
         uses: aquasecurity/trivy-action@0.33.0
         with: 
-          image-ref: ${{env.ECR_REG}}${{env.ECR_REPO}}:${{needs.test_image.outputs.image_tag}}
+          image-ref: ${{needs.test_image.outputs.image_tag}}
           format: table
           ignore-unfixed: true
           severity: HIGH,CRITICAL
