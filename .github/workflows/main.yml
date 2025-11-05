@@ -92,7 +92,7 @@ jobs:
         run: | 
           image_tag=$(echo "${{steps.meta.outputs.tags}}" | grep 'sha-' | head -n 1)
           echo "saving image now"
-          docker save image_tag -o images.tar 
+          docker save $image_tag -o images.tar 
           echo "image_ref=$image_tag" >> "$GITHUB_OUTPUT"
       - name: show images
         run: docker images
