@@ -90,7 +90,7 @@ jobs:
       - name: save image
         id: save
         run: |
-          IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
+          IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n 2)
           echo "Saving image: $IMAGE_TAG"
           docker save "$IMAGE_TAG" -o images.tar
           echo "image_ref=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
@@ -205,9 +205,9 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2 
       - name: push images 
         run: | 
-          docker tag ${{env.ECR_REG}}${{env.ECR_REPO}}:${{needs.scan.outputs.image-tag}} ${{env.ECR_REG}}${{env.ECR_REPO}}:latest
+          docker tag ${{needs.scan.outputs.image-tag}} ${{env.ECR_REG}}${{env.ECR_REPO}}:latest
           docker push ${{env.ECR_REG}}${{env.ECR_REPO}}:latest
-          docker push ${{env.ECR_REG}}${{env.ECR_REPO}}:${{needs.scan.outputs.image-tag}}
+          docker push ${{needs.scan.outputs.image-tag}}
     
       - name: send a email notification to team 
         run: |
