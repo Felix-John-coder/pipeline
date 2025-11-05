@@ -120,7 +120,7 @@ jobs:
           path: .
       - name: load images to daemon
         run: docker load -i images.tar
-      - name: tes image 
+      - name: test image 
         run: |
           docker run -d --name test-app -p 8080:8080 ${{needs.build.outputs.image}}
           retries=5
@@ -128,8 +128,8 @@ jobs:
           interval=5
           health_link='http://localhost:8080/health'
           until [ $count -ge $retries ]; do 
-            image_status=$( curl -s -o /dev/null -w "%{http_code}" '$health_link' || true )
-            if [$image_status == "200"]; then 
+            image_status=$( curl -s -o /dev/null -w "%{http_code}" "$health_link" || true )
+            if [ $image_status == "200" ]; then 
             echo "On $count attempt the image testing was successful"
             docker logs test-app
             docker rm -f test-app
