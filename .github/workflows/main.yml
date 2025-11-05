@@ -52,6 +52,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10 
     needs: test
+    outputs:
+      image-tag: ${{steps.meta.outputs.tags}}
     steps:
       - name: chechkout repo 
         uses: actions/checkout@v4 
@@ -91,6 +93,46 @@ jobs:
           name: images 
           path: images.tar 
           retention-days: 7 
+   #==============
+    #test_images
+    #============
+  test_image:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: download artifact 
+        uses: actions/download-artifact@v4 
+        with:
+          name: images 
+          path: . 
+      - name: load image to runner 
+        run: docker load -i images.tar
+      - name: run test on image 
+        run: | 
+          docker run -d --name test-app -p 8080:8080 ${{env.ECR_REG}}${{env.ECR_REPO}}:${{needs.build.outputs.image-tag}}
+          retries=5
+          count_retry=0
+          interval=5
+          health_link="http://localhost:8080/health"
+          
+          until [$count_retry -ge $retries]
+          do 
+            status_code=$(curl -s -o /dev/null -w "%{http_code}" "$health_link" || true)
+            if [$status_code == "200"];then
+            echo "On the $count_retry attempt the container ran successfully"
+            docker logs test-app
+            docker rm -f test-app
+            exit 0
+            fi 
+            count_retry=$((count_retry+1))
+            echo "The number of attempt is $count_retry/$retries: testing failed with code $status_code"
+            sleep $interval
+          done 
+          echo "testing failed"
+          docker logs test-app
+          docker rm -f test-app
+          exit 1
   
   #================
   #scan images
@@ -118,6 +160,7 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: 0
           vuln-type: 'os,library'
+   
   #==============
   #push to ecr
   #==============

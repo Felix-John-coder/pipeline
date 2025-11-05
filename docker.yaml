@@ -53,6 +53,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      image-tag: ${{steps.meta.outputs.tags}}
     needs: test
     steps:
       - name: checkout code 
@@ -124,6 +126,23 @@ jobs:
           exit-code: 0 # if caught an error only raise a warning and not fail pipeline
           severity: HIGH
           vuln-type: 'os,library'
+
+  #================
+  #test image
+  #============
+  testing:
+    need: scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: download artifact 
+        uses: actions/download-artifact@v4
+        with:
+          name: images
+          path: .
+      - name: load image into daemon 
+        run: docker load -i images.tar
+      - name: run test on image 
+       
 #=============
 #push
 #==================
