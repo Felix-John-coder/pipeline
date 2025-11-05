@@ -53,7 +53,7 @@ jobs:
     timeout-minutes: 10 
     needs: test
     outputs:
-      image-tag: ${{steps.meta.outputs.tags}}
+      image-tag: ${{steps.meta.outputs.version}}
     steps:
       - name: chechkout repo 
         uses: actions/checkout@v4 
@@ -112,7 +112,7 @@ jobs:
         run: docker load -i images.tar
       - name: run test on image 
         run: | 
-          docker run -d --name test-app -p 8080:8080 ${{needs.build.outputs.image-tag}}
+          docker run -d --name test-app -p 8080:8080 ${{env.ECR_REG}}${{env.ECR_REPO}}:${{needs.build.outputs.image-tag}}
           retries=5
           count_retry=0
           interval=5
@@ -158,7 +158,7 @@ jobs:
       - name: scan images with trivy
         uses: aquasecurity/trivy-action@0.33.0
         with: 
-          image-ref: ${{needs.test_image.outputs.image_tag}}
+          image-ref: ${{env.ECR_REG}}${{env.ECR_REPO}}:${{needs.test_image.outputs.image_tag}}
           format: table
           ignore-unfixed: true
           severity: HIGH,CRITICAL
@@ -173,8 +173,6 @@ jobs:
     if: github.ref == 'refs/heads/main'
     timeout-minutes: 5
     needs: scan
-    outputs:
-      image-tag: ${{needs.scan.outputs.image-tag}}
     steps:
       - name: download artifact 
         uses: actions/download-artifact@v4
@@ -195,7 +193,9 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2 
       - name: push images 
         run: | 
-          docker push ${{needs.scan.outputs.image-tag}}
+          docker tag ${{env.ECR_REG}}${{env.ECR_REPO}}:${{needs.scan.outputs.image-tag}} ${{env.ECR_REG}}${{env.ECR_REPO}}:latest
+          docker push ${{env.ECR_REG}}${{env.ECR_REPO}}:latest
+          docker push ${{env.ECR_REG}}${{env.ECR_REPO}}:${{needs.scan.outputs.image-tag}}
     
       - name: send a email notification to team 
         run: |
