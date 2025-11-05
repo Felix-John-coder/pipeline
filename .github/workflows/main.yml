@@ -127,18 +127,17 @@ jobs:
           interval=5
           health_link="http://localhost:8080/health"
           
-          until [$count_retry -ge $retries]
-          do 
+          until [ $count_retry -ge $retries ]; do 
             status_code=$(curl -s -o /dev/null -w "%{http_code}" "$health_link" || true)
-            if [$status_code == "200"];then
+            if [ $status_code == "200" ]; then
             echo "On the $count_retry attempt the container ran successfully"
             docker logs test-app
             docker rm -f test-app
             exit 0
             fi 
-            count_retry=$((count_retry+1))
+            count_retry=$((count_retry + 1))
             echo "The number of attempt is $count_retry/$retries: testing failed with code $status_code"
-            sleep $interval
+            sleep "$interval"
           done 
           echo "testing failed"
           docker logs test-app
