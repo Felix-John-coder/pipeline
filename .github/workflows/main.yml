@@ -90,7 +90,7 @@ jobs:
       - name: save image
         id: save
         run: |
-          IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n 2)
+          IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" | grep 'sha-' | head -n 2)
           echo "Saving image: $IMAGE_TAG"
           docker save "$IMAGE_TAG" -o images.tar
           echo "image_ref=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
