@@ -119,6 +119,10 @@ jobs:
           path: . 
       - name: load image to runner 
         run: docker load -i images.tar
+      - name: checkout 
+        uses: actions/checkout@v4
+        with: 
+          fetch-depth: 0
       - name: run test on image 
         run: | 
           docker run -d --name test-app -p 8080:8080 ${{needs.build.outputs.image-tag}}

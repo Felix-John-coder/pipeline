@@ -13,4 +13,4 @@ COPY . .
 EXPOSE 8080
 
 ENTRYPOINT [ "python" ]
-CMD [ "app.py" ]
+CMD [ "src/app.py" ]
