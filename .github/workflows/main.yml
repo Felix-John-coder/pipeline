@@ -201,5 +201,5 @@ jobs:
         run: |
           aws sns publish \
           --topic-arn ${{env.TOPIC_ARN}} \
-          --subject "pipline triggered"
-          --message "The pipline ran successfully and an image with ID : ${{needs.scan.outputs.image-tag}} was created"
+          --subject "pipline triggered" \
+          --message "The pipline ran successfully and an image with ID : ${{needs.scan.outputs.image-tag}} was created" \
