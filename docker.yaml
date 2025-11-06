@@ -214,7 +214,7 @@ jobs:
           docker push ${{env.ECR_REG}}${{env.ECR_REPO}}:latest
           docker push ${{needs.scan.outputs.image-tag}}
     
-      - name: send a email notification to team 
+      - name: send a email notification to team for successful pushing 
         run: |
           aws sns publish \
           --topic-arn ${{env.EMAIL}} \
