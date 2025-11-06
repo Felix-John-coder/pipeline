@@ -184,7 +184,7 @@ jobs:
       - name: load to runner 
         run: docker load -i images.tar
       - name: check images
-        run: docer images 
+        run: docker images 
       - name: login amazon 
         uses: aws-actions/configure-aws-credentials@v4
         with:
