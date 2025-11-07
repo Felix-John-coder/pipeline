@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5 
     outputs:
-      image: ${{steps.save.outputs.image_ref}}
+        image: ${{steps.save.outputs.image_ref}}
     steps:
       - name: chechkout repo 
         uses: actions/checkout@v4
@@ -87,60 +87,59 @@ jobs:
           labels: ${{steps.meta.outputs.labels}}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: save images 
+      - name: save image 
         id: save
-        run: | 
-          image_tag=$(echo "${{steps.meta.outputs.tags}}" | grep 'sha-' | head -n 1)
-          echo "saving image now"
-          docker save $image_tag -o images.tar 
-          echo "image_ref=$image_tag" >> "$GITHUB_OUTPUT"
-      - name: show images
-        run: docker images
-      - name: upload images 
+        run: |
+          image_tag=$(echo "${{steps.meta.outputs.tags}}" | grep 'sha-'| head -n 1)
+          docker save image_tag -o image.tar 
+          echo "image_ref=image_tag" >> "$GITHUB_OUTPUT"
+      - name: upload artifact 
         uses: actions/upload-artifact@v4
         with: 
           name: image
-          path: images.tar
+          path: image.tar
           retention-days: 7
-        
-    #=========
-    #test_images
-    #==============
+  #===============
+  #integration test on artifact
+  #==========================
   test_image:
-    needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
+    needs: build
     outputs:
       image-tag: ${{needs.build.outputs.image}}
-    steps:
-      - name: download artifact 
-        uses: actions/download-artifact@v4 
-        with:
+    steps: 
+      - name: download image 
+        uses: actions/download-artifact@v4
+        with: 
           name: image
           path: .
-      - name: load images to daemon
-        run: docker load -i images.tar
-      - name: test image 
-        run: |
+      - name: load actifact 
+        run: docker load -i image.tar
+      - name: chechkout artifact
+        run: docker images 
+      - name: run integration test 
+        run: | 
           docker run -d --name test-app -p 8080:8080 ${{needs.build.outputs.image}}
-          retries=5
           count=0
           interval=5
-          health_link='http://localhost:8080/health'
+          retries=5
+          health_url= 'http://localhost:8080/health'
+
           until [ $count -ge $retries ]; do 
-            image_status=$( curl -s -o /dev/null -w "%{http_code}" "$health_link" || true )
-            if [ $image_status == "200" ]; then 
-            echo "On $count attempt the image testing was successful"
+            image_health=$( curl -s -o /dev/null -w "%{http_code} "$health_link" || true )
+            if [  $image_health == "200"  ]; then 
+            echo "on the $count the testing was successful"
             docker logs test-app
             docker rm -f test-app
             exit 0
             fi 
             count=$((count + 1))
-            echo "The number of fail attempt is $count/$count : $image_status" 
+            echo "the number of attempt is $count/$retries : $image_health"
             sleep "$interval"
           done 
-          echo "image testing failed"
-          docker rm -f test-app
+          echo "testing failed"
+          docker rm -f test-app 
           exit 1
   scan: 
     needs: test_image 
