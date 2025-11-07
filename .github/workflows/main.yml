@@ -91,8 +91,8 @@ jobs:
         id: save
         run: |
           image_tag=$(echo "${{steps.meta.outputs.tags}}" | grep 'sha-'| head -n 1)
-          docker save image_tag -o image.tar 
-          echo "image_ref=image_tag" >> "$GITHUB_OUTPUT"
+          docker save $image_tag -o image.tar 
+          echo "image_ref=$image_tag" >> "$GITHUB_OUTPUT"
       - name: upload artifact 
         uses: actions/upload-artifact@v4
         with: 
