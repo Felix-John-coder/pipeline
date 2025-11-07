@@ -1,0 +1,92 @@
+name: scan_push
+
+on:
+  workflow_run:
+    workflows: ["build_test"]
+    branches: ["main"]
+    types:  ["completed"]
+
+permissions:
+  id-token: write
+  contents: write
+concurrency: 
+  group: ${{github.ref}}
+  cancel-in-progress: true
+env:
+  REGION: ${{vars.AWS_REGION}}
+  ECR_REPO: ${{vars.ECR_REPO}}
+  ECR_REG: ${{vars.ECR_REG}}
+  ROLE: ${{secrets.ROLE}}
+  TOPIC_ARN: ${{secrets.EMAIL}}
+
+jobs:
+  scan: 
+    if: ${{ github.event.workflow_run.conclusion == 'success'}}
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{steps.meta.outputs.image_tag}}
+    steps:  
+      - name: download tag
+        uses: actions/download-artifact@v4
+        with:
+          name: image-tag
+          path: .
+      - name: load tag
+        id: meta 
+        run: echo "meta_tag=$(cat metadata.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: download artifact for scan 
+        uses: actions/download-artifact@v4
+        with:
+          name: image
+          path: .
+      - name: load image 
+        run: docker load -i image.tar
+      - name: check image 
+        run: docker images 
+      - name: run scan 
+        uses: aquasecurity/trivy-action@0.33.0
+        with: 
+          image-ref: ${{steps.meta.outputs.image_tag}}
+          format: table 
+          vuln-type: 'os,library'
+          exit-code: 1
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+    #=============
+    #push
+    #============
+
+  push: 
+    needs: scan 
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: download artifact
+        uses: actions/download-artifact@v4
+        with: 
+          name: image 
+          path: .
+      - name: load to runner 
+        run: docker load -i images.tar
+      - name: check images
+        run: docker images 
+      - name: login amazon 
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{env.ROLE}}
+          aws-region: ${{env.REGION}}
+      - name: ecr login 
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: push image 
+        run: | 
+          docker tag ${{needs.scan.outputs.image-tag}} ${{env.ECR_REG}}${{env.ECR_REPO}}:latest
+          docker push ${{env.ECR_REG}}${{env.ECR_REPO}}:latest
+          docker push ${{needs.scan.outputs.image-tag}}
+      - name: send email notification
+        run: |
+          aws sns publish \
+          --topic-arn ${{env.TOPIC_ARN}} \
+          --subject "pipline triggered" \
+          --message "The pipline ran successfully and an image with ID : ${{needs.scan.outputs.image-tag}} was created" \
