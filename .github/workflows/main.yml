@@ -153,7 +153,7 @@ jobs:
           name: image
           path: .
       - name: load image 
-        run: docker load -i images.tar
+        run: docker load -i image.tar
       - name: check image 
         run: docker images 
       - name: run scan 
@@ -181,7 +181,7 @@ jobs:
           name: image 
           path: .
       - name: load to runner 
-        run: docker load -i images.tar
+        run: docker load -i image.tar
       - name: check images
         run: docker images 
       - name: login amazon 
