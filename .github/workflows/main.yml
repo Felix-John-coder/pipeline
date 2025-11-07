@@ -127,7 +127,7 @@ jobs:
           health_url= 'http://localhost:8080/health'
 
           until [ $count -ge $retries ]; do 
-            image_health=$( curl -s -o /dev/null -w "%{http_code} "$health_link" || true )
+            image_health=$( curl -s -o /dev/null -w "%{http_code} "$health_url" || true )
             if [  $image_health == "200"  ]; then 
             echo "on the $count the testing was successful"
             docker logs test-app
