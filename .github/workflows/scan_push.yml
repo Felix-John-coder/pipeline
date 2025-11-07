@@ -32,9 +32,9 @@ jobs:
           role-to-assume: ${{env.ROLE}}
           aws-region: ${{env.REGION}}
       - name: download metadata to s3 
-        run: aws s3 cp s3://metadatafelix-aws--eun1-az1--x-s3/metadata.txt .
+        run: aws s3 cp s3://felix-aws-bukcet-stores/metadata.txt .
       - name: download artifact to s3
-        run: aws s3 cp s3://metadatafelix-aws--eun1-az1--x-s3/image.tar .
+        run: aws s3 cp s3://felix-aws-bukcet-stores/image.tar .
 
       - name: load tag
         id: meta 
@@ -69,7 +69,7 @@ jobs:
           role-to-assume: ${{env.ROLE}}
           aws-region: ${{env.REGION}}
       - name: download artifact to s3
-        run: aws s3 cp s3://metadatafelix-aws--eun1-az1--x-s3/image.tar .
+        run: aws s3 cp s3://felix-aws-bukcet-stores/image.tar .
       - name: load to runner 
         run: docker load -i images.tar
       - name: check images
