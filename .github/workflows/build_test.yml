@@ -91,7 +91,7 @@ jobs:
           role-to-assume: ${{secrets.ROLE}}
           aws-region: ${{vars.AWS_REGION}}
       - name: download artifact to s3
-        run: aws s3 cp s3://felix-aws-bukcet-stores /image.tar .
+        run: aws s3 cp s3://felix-aws-bukcet-stores/image.tar .
       - name: load actifact 
         run: docker load -i image.tar
       - name: chechkout artifact
