@@ -4,6 +4,7 @@ on:
     workflows: ["unit_test"]
     branches: ["main"]
     types: ["completed"]
+  workflow_dispatch:
 permissions:
   id-token: write
   contents: write
@@ -11,10 +12,9 @@ concurrency:
   group: ${{github.ref}}
   cancel-in-progress: true
 env:
-  REGION: ${{vars.AWS_REGION}}
   ECR_REPO: ${{vars.ECR_REPO}}
   ECR_REG: ${{vars.ECR_REG}}
-  ROLE: ${{secrets.ROLE}}
+  
 
   
 #==================
@@ -69,8 +69,8 @@ jobs:
       - name: login to amazon 
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{env.ROLE}}
-          aws-region: ${{env.REGION}}
+          role-to-assume: ${{secrets.ROLE}}
+          aws-region: ${{vars.AWS_REGION}}
       - name: upload metadata to s3 
         run: aws s3 cp metadata.txt s3://metadatafelix-aws--eun1-az1--x-s3
       - name: upload artifact to s3
@@ -88,8 +88,8 @@ jobs:
       - name: login to amazon 
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{env.ROLE}}
-          aws-region: ${{env.REGION}}
+          role-to-assume: ${{secrets.ROLE}}
+          aws-region: ${{vars.AWS_REGION}}
       - name: download artifact to s3
         run: aws s3 cp s3://metadatafelix-aws--eun1-az1--x-s3/image.tar .
       - name: load actifact 
