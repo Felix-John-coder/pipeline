@@ -24,7 +24,7 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success'}}
     runs-on: ubuntu-latest
     outputs:
-      image-tag: ${{steps.meta.outputs.image_tag}}
+      image-tag: ${{steps.meta.outputs.meta_tag}}
     steps:  
       - name: login to amazon 
         uses: aws-actions/configure-aws-credentials@v4
@@ -47,7 +47,7 @@ jobs:
       - name: run scan 
         uses: aquasecurity/trivy-action@0.33.0
         with: 
-          image-ref: ${{steps.meta.outputs.image_tag}}
+          image-ref: ${{steps.meta.outputs.meta_tag}}
           format: table 
           vuln-type: 'os,library'
           exit-code: 1
