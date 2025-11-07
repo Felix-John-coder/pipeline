@@ -27,7 +27,7 @@ jobs:
       image-tag: ${{steps.meta.outputs.image_tag}}
     steps:  
       - name: login to amazon 
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{env.ROLE}}
           aws-region: ${{env.REGION}}
