@@ -67,7 +67,7 @@ jobs:
       - name: save metadata 
         run: echo "${{steps.save.outputs.image_ref}}" > metadata.txt
       - name: login to amazon 
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{secrets.ROLE}}
           aws-region: ${{vars.AWS_REGION}}
@@ -86,7 +86,7 @@ jobs:
       image-tag: ${{needs.build.outputs.image}}
     steps: 
       - name: login to amazon 
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{secrets.ROLE}}
           aws-region: ${{vars.AWS_REGION}}
