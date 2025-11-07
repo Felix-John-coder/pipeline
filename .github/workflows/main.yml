@@ -124,7 +124,7 @@ jobs:
           count=0
           interval=5
           retries=5
-          health_url= 'http://localhost:8080/health'
+          health_url= "http://localhost:8080/health"
 
           until [ $count -ge $retries ]; do 
             image_health=$( curl -s -o /dev/null -w "%{http_code}" "$health_url" || true )
