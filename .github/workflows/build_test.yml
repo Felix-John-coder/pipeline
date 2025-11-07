@@ -10,8 +10,11 @@ concurrency:
   group: ${{github.ref}}
   cancel-in-progress: true
 env:
+  REGION: ${{vars.AWS_REGION}}
   ECR_REPO: ${{vars.ECR_REPO}}
   ECR_REG: ${{vars.ECR_REG}}
+  ROLE: ${{secrets.ROLE}}
+
   
 #==================
   #build 
@@ -62,17 +65,15 @@ jobs:
           echo "image_ref=$image_tag" >> "$GITHUB_OUTPUT"
       - name: save metadata 
         run: echo "${{steps.save.outputs.image_ref}}" > metadata.txt
-      - name: upload metadata 
-        uses: actions/upload-artifact@v4
-        with: 
-          name: image-tag
-          path: metadata.txt
-      - name: upload artifact 
-        uses: actions/upload-artifact@v4
-        with: 
-          name: image
-          path: image.tar
-          retention-days: 7
+      - name: login to amazon 
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{env.ROLE}}
+          aws-region: ${{env.REGION}}
+      - name: upload metadata to s3 
+        run: aws s3 cp metadata.txt s3://metadatafelix-aws--eun1-az1--x-s3
+      - name: upload artifact to s3
+        run: aws s3 cp image.tar s3://metadatafelix-aws--eun1-az1--x-s3
   #===============
   #integration test on artifact
   #==========================
@@ -83,11 +84,13 @@ jobs:
     outputs:
       image-tag: ${{needs.build.outputs.image}}
     steps: 
-      - name: download image 
-        uses: actions/download-artifact@v4
-        with: 
-          name: image
-          path: .
+      - name: login to amazon 
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{env.ROLE}}
+          aws-region: ${{env.REGION}}
+      - name: download artifact to s3
+        run: aws s3 cp s3://metadatafelix-aws--eun1-az1--x-s3/image.tar .
       - name: load actifact 
         run: docker load -i image.tar
       - name: chechkout artifact

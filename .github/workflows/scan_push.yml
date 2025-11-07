@@ -26,20 +26,20 @@ jobs:
     outputs:
       image-tag: ${{steps.meta.outputs.image_tag}}
     steps:  
-      - name: download tag
-        uses: actions/download-artifact@v4
+      - name: login to amazon 
+        uses: aws-actions/configure-aws-credentials@v5
         with:
-          name: image-tag
-          path: .
+          role-to-assume: ${{env.ROLE}}
+          aws-region: ${{env.REGION}}
+      - name: download metadata to s3 
+        run: aws s3 cp s3://metadatafelix-aws--eun1-az1--x-s3/metadata.txt .
+      - name: download artifact to s3
+        run: aws s3 cp s3://metadatafelix-aws--eun1-az1--x-s3/image.tar .
+
       - name: load tag
         id: meta 
         run: echo "meta_tag=$(cat metadata.txt)" >> "$GITHUB_OUTPUT"
 
-      - name: download artifact for scan 
-        uses: actions/download-artifact@v4
-        with:
-          name: image
-          path: .
       - name: load image 
         run: docker load -i image.tar
       - name: check image 
@@ -63,20 +63,17 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
-      - name: download artifact
-        uses: actions/download-artifact@v4
-        with: 
-          name: image 
-          path: .
-      - name: load to runner 
-        run: docker load -i images.tar
-      - name: check images
-        run: docker images 
       - name: login amazon 
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{env.ROLE}}
           aws-region: ${{env.REGION}}
+      - name: download artifact to s3
+        run: aws s3 cp s3://metadatafelix-aws--eun1-az1--x-s3/image.tar .
+      - name: load to runner 
+        run: docker load -i images.tar
+      - name: check images
+        run: docker images 
       - name: ecr login 
         uses: aws-actions/amazon-ecr-login@v2
       - name: push image 
