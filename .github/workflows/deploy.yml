@@ -1,0 +1,45 @@
+name: deploy 
+on:
+  workflow_run:
+    workflows: ["scan_push"]
+    types: ["completed"]
+    branches: ["main"]
+  workflow_dispatch:
+permissions:
+  id-token: write 
+  contents: read 
+concurrency:
+  group: ${{github.ref}}
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    if: ${{github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: login in aws 
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{secrets.ROLE}}
+          aws-region: ${{vars.AWS_REGION}}
+      - name: get tag from s3 
+        run: aws s3://felix-aws-bukcet-stores/tag.txt
+      - name: load tag to runner 
+        id: tag
+        run: echo "image_tag=$(cat tag.txt)" >> "$GITHUB_OUTPUT"
+      - name: ssh into ec2 
+        uses: appleboy/ssh-action@v1.2.3
+        with:
+          host: ${{secrets.HOST}}
+          username: ${{secrets.USERNAME}}
+          key: ${{secrets.KEY}}
+          script: |
+            echo "login ecr"
+            sudo bash -c "aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 862479276433.dkr.ecr.eu-north-1.amazonaws.com"
+            sudo docker pull ${{steps.tag.outputs.image_tag}}
+            sudo docker stop application  || true
+            sudo docker rmi -f application || true
+            sudo docker run -d --name application \
+            -p 5000:8080 \
+            --restart always \ 
+            ${{steps.tag.outputs.image_tag}}
