@@ -23,7 +23,7 @@ jobs:
           role-to-assume: ${{secrets.ROLE}}
           aws-region: ${{vars.AWS_REGION}}
       - name: get tag from s3 
-        run: aws s3://felix-aws-bukcet-stores/tag.txt
+        run: aws s3 cp s3://felix-aws-bukcet-stores/tag.txt .
       - name: load tag to runner 
         id: tag
         run: echo "image_tag=$(cat tag.txt)" >> "$GITHUB_OUTPUT"
